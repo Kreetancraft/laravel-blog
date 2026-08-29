@@ -63,6 +63,7 @@ horizontal rule, clear formatting, undo/redo, source view and fullscreen — plu
 | **YouTube embeds** | Paste a URL; served cookie-free |
 | **Find and replace** | Across the whole document, with match case |
 | **Word and character count** | Live, under the editor |
+| **Slash menu** | Type `/` at the start of a block for a filtered command palette — headings, lists, table, image, video, callouts, divider. Arrow keys and Enter, or click |
 | **Paste cleanup** | Word and Google Docs paste a document, not a fragment — `mso-*` styles, `<o:p>` tags and a class on every element. Structure is kept, presentation dropped |
 
 Images come from your own picker via `blog.media_picker_view`; the editor dispatches

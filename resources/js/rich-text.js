@@ -10,6 +10,8 @@ import { TableKit } from '@tiptap/extension-table';
 import { TaskList, TaskItem } from '@tiptap/extension-list';
 import { CharacterCount } from '@tiptap/extension-character-count';
 import { Youtube } from '@tiptap/extension-youtube';
+import { Extension } from '@tiptap/core';
+import Suggestion from '@tiptap/suggestion';
 
 /**
  * A callout: note, tip, warning or danger.
@@ -128,6 +130,92 @@ function findMatches(editor, needle, { matchCase = false } = {}) {
 }
 
 /**
+ * What `/` offers, in menu order.
+ *
+ * `keywords` are matched as well as the title, so "bullet" finds the list and
+ * "h1" finds Heading 1 — people type what they want, not what it is called.
+ *
+ * `run` receives the Alpine component, so a command can open a modal (images)
+ * or a toolbar row (embeds) rather than only editing the document.
+ */
+const SLASH_COMMANDS = [
+    { title: 'Heading 1', keywords: 'h1 title', icon: 'H1', run: (c) => c.setBlock(1) },
+    { title: 'Heading 2', keywords: 'h2 subtitle', icon: 'H2', run: (c) => c.setBlock(2) },
+    { title: 'Heading 3', keywords: 'h3', icon: 'H3', run: (c) => c.setBlock(3) },
+    { title: 'Bulleted list', keywords: 'ul bullet unordered', icon: '•', run: (c) => c.toggleBulletList() },
+    { title: 'Numbered list', keywords: 'ol ordered number', icon: '1.', run: (c) => c.toggleOrderedList() },
+    { title: 'Task list', keywords: 'todo checkbox check', icon: '☑', run: (c) => c.toggleTaskList() },
+    { title: 'Quote', keywords: 'blockquote citation', icon: '❝', run: (c) => c.toggleBlockquote() },
+    { title: 'Code block', keywords: 'pre snippet', icon: '</>', run: (c) => c.toggleCodeBlock() },
+    { title: 'Table', keywords: 'grid rows columns', icon: '▦', run: (c) => c.insertTable() },
+    { title: 'Image', keywords: 'picture photo media', icon: '🖼', run: (c) => c.openImage() },
+    { title: 'YouTube video', keywords: 'embed vimeo media', icon: '▶', run: (c) => c.openEmbed() },
+    { title: 'Note', keywords: 'callout info', icon: 'ℹ', run: (c) => c.setCallout('note') },
+    { title: 'Tip', keywords: 'callout success', icon: '✓', run: (c) => c.setCallout('tip') },
+    { title: 'Warning', keywords: 'callout caution', icon: '!', run: (c) => c.setCallout('warning') },
+    { title: 'Danger', keywords: 'callout error', icon: '✕', run: (c) => c.setCallout('danger') },
+    { title: 'Divider', keywords: 'hr horizontal rule line', icon: '—', run: (c) => c.horizontalRule() },
+];
+
+/**
+ * The `/` command palette.
+ *
+ * Rendering is left to Alpine rather than a positioning library: the menu is a
+ * plain element in the Blade, and this only reports where the caret is and
+ * which items match. That keeps the bundle free of tippy/floating-ui, and means
+ * the menu inherits the host's Flux theme instead of carrying its own.
+ *
+ * Keyboard handling lives here because Tiptap owns the keymap while the menu is
+ * open — arrow keys and Enter must not reach the document.
+ */
+function slashCommand(component) {
+    return Extension.create({
+        name: 'slashCommand',
+
+        addProseMirrorPlugins() {
+            return [
+                Suggestion({
+                    editor: this.editor,
+                    char: '/',
+                    // Only at the start of an empty block: `/` mid-sentence is a
+                    // slash, and a palette opening over a date would be worse
+                    // than no palette at all.
+                    allow: ({ state, range }) => {
+                        const $from = state.doc.resolve(range.from);
+
+                        return $from.parent.type.name !== 'codeBlock'
+                            && $from.parentOffset <= 1;
+                    },
+                    items: ({ query }) => {
+                        const q = (query || '').toLowerCase().trim();
+
+                        if (! q) {
+                            return SLASH_COMMANDS;
+                        }
+
+                        return SLASH_COMMANDS.filter(
+                            (item) => (item.title + ' ' + item.keywords).toLowerCase().includes(q)
+                        );
+                    },
+                    command: ({ editor, range, props }) => {
+                        // Delete the `/query` before running, or the command
+                        // applies to a block that still contains it.
+                        editor.chain().focus().deleteRange(range).run();
+                        props.run(component);
+                    },
+                    render: () => ({
+                        onStart: (props) => component.openSlash(props),
+                        onUpdate: (props) => component.updateSlash(props),
+                        onKeyDown: (props) => component.slashKeyDown(props),
+                        onExit: () => component.closeSlash(),
+                    }),
+                }),
+            ];
+        },
+    });
+}
+
+/**
  * Tiptap-powered rich text editor as an Alpine factory.
  *
  * Exposed on `window` (not via Alpine.data + alpine:init) so it resolves
@@ -158,6 +246,12 @@ function richText(model, placeholder = 'Write here…') {
         tableOpen: false,
         embedOpen: false,
         findOpen: false,
+        slashOpen: false,
+        slashItems: [],
+        slashIndex: 0,
+        slashTop: 0,
+        slashLeft: 0,
+        slashCommand: null,
         linkUrl: '',
         embedUrl: '',
         findTerm: '',
@@ -204,6 +298,7 @@ function richText(model, placeholder = 'Write here…') {
                     CharacterCount,
                     Youtube.configure({ controls: true, nocookie: true }),
                     Callout,
+                    slashCommand(this),
                 ],
                 content: this.content,
                 editorProps: {
@@ -298,6 +393,90 @@ function richText(model, placeholder = 'Write here…') {
         clearFormatting() { this.chain().unsetAllMarks().clearNodes().run(); },
         undo() { this.chain().undo().run(); },
         redo() { this.chain().redo().run(); },
+
+        // ── Slash command palette ─────────────────────────────────────────
+        openSlash(props) {
+            this.applySlash(props);
+        },
+        updateSlash(props) {
+            this.applySlash(props);
+        },
+        /**
+         * Tiptap 3 resolves `items()` asynchronously: onStart arrives with an
+         * empty list and `loading: true`, and the real list lands on a later
+         * onUpdate. Closing on that first empty call meant the palette never
+         * appeared — so stay open while it is still loading.
+         */
+        applySlash(props) {
+            this.slashCommand = props.command;
+            this.slashItems = props.items || [];
+            this.slashIndex = 0;
+            this.slashOpen = this.slashItems.length > 0 || props.loading === true;
+            this.positionSlash(props);
+        },
+        closeSlash() {
+            this.slashOpen = false;
+            this.slashItems = [];
+            this.slashCommand = null;
+        },
+        positionSlash(props) {
+            const rect = props.clientRect && props.clientRect();
+
+            if (! rect) {
+                return;
+            }
+
+            // Relative to the editor host, so the menu scrolls with the content
+            // rather than sitting at a stale viewport position.
+            const host = this.$refs.editor.getBoundingClientRect();
+
+            this.slashTop = rect.bottom - host.top + 6;
+            this.slashLeft = rect.left - host.left;
+        },
+        slashKeyDown({ event }) {
+            if (! this.slashOpen) {
+                return false;
+            }
+
+            if (event.key === 'ArrowDown') {
+                this.slashIndex = (this.slashIndex + 1) % this.slashItems.length;
+
+                return true;
+            }
+
+            if (event.key === 'ArrowUp') {
+                this.slashIndex = (this.slashIndex + this.slashItems.length - 1) % this.slashItems.length;
+
+                return true;
+            }
+
+            if (event.key === 'Enter' || event.key === 'Tab') {
+                this.runSlash(this.slashIndex);
+
+                return true;
+            }
+
+            if (event.key === 'Escape') {
+                this.closeSlash();
+
+                return true;
+            }
+
+            return false;
+        },
+        runSlash(index) {
+            const item = this.slashItems[index];
+
+            // Back through Suggestion's own command callback rather than acting
+            // directly: it knows the range the `/query` was matched on, and
+            // deleting that text is half the job. Digging the range out of the
+            // plugin state would work until the plugin key changes.
+            if (item && this.slashCommand) {
+                this.slashCommand(item);
+            }
+
+            this.closeSlash();
+        },
 
         // ── Callouts ──────────────────────────────────────────────────────
         setCallout(type) { this.chain().toggleCallout(type).run(); this.insertOpen = false; },

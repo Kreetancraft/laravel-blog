@@ -244,15 +244,48 @@
                 <flux:button type="button" size="xs" variant="ghost" x-on:click="findOpen = false">{{ __('Close') }}</flux:button>
             </div>
 
-            {{-- Editor (Tiptap mounts inside this host) --}}
-            <div
-                x-show="! showSource"
-                x-ref="editor"
-                data-rich-text
-                class="max-w-none flex-1 overflow-y-auto text-sm text-zinc-800 dark:text-zinc-100"
-                style="--rt-min: {{ max($rows * 1.6, 12.5) }}rem; max-height: 500px"
-                x-bind:style="fullscreen ? '--rt-min: calc(100vh - 7rem); max-height: calc(100vh - 7rem)' : ''"
-            ></div>
+            {{-- Editor (Tiptap mounts inside this host).
+
+                 The slash menu is a SIBLING, not a child: Tiptap owns the
+                 inside of that element and would clobber anything placed
+                 there. The wrapper is what the menu positions against. --}}
+            <div class="relative flex-1 overflow-hidden" x-show="! showSource">
+                <div
+                    x-ref="editor"
+                    data-rich-text
+                    class="max-w-none h-full overflow-y-auto text-sm text-zinc-800 dark:text-zinc-100"
+                    style="--rt-min: {{ max($rows * 1.6, 12.5) }}rem; max-height: 500px"
+                    x-bind:style="fullscreen ? '--rt-min: calc(100vh - 7rem); max-height: calc(100vh - 7rem)' : ''"
+                ></div>
+
+                {{-- Slash command palette. Type `/` at the start of a block. --}}
+                <div
+                    x-show="slashOpen"
+                    x-cloak
+                    style="display:none"
+                    x-bind:style="'top: ' + slashTop + 'px; left: ' + slashLeft + 'px'"
+                    class="absolute z-40 max-h-64 w-64 overflow-y-auto rounded-lg border border-zinc-200 bg-white p-1 shadow-xl dark:border-zinc-700 dark:bg-zinc-800"
+                >
+                    <template x-for="(item, index) in slashItems" :key="item.title">
+                        <button
+                            type="button"
+                            class="rt-menu-item"
+                            x-bind:class="index === slashIndex && 'bg-zinc-100 dark:bg-zinc-700'"
+                            x-on:mouseenter="slashIndex = index"
+                            x-on:mousedown.prevent="runSlash(index)"
+                        >
+                            <span class="flex items-center gap-2">
+                                <span class="inline-flex w-5 shrink-0 justify-center text-xs text-zinc-400" x-text="item.icon"></span>
+                                <span x-text="item.title"></span>
+                            </span>
+                        </button>
+                    </template>
+
+                    <div x-show="! slashItems.length" class="px-2 py-1.5 text-xs text-zinc-500 dark:text-zinc-400">
+                        {{ __('No matching command') }}
+                    </div>
+                </div>
+            </div>
 
             {{-- Counter: the SEO analyser scores content length separately, so
                  this is the number a writer can act on while writing. --}}
