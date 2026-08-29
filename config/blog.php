@@ -39,7 +39,11 @@ return [
             'posts.create' => 'admin.blog.posts.create',
             'posts.edit' => 'admin.blog.posts.edit',
             'categories' => 'admin.blog.categories',
+            'categories.create' => 'admin.blog.categories.create',
+            'categories.edit' => 'admin.blog.categories.edit',
             'tags' => 'admin.blog.tags',
+            'tags.create' => 'admin.blog.tags.create',
+            'tags.edit' => 'admin.blog.tags.edit',
             'authors' => 'admin.blog.authors',
             'authors.create' => 'admin.blog.authors.create',
             'authors.edit' => 'admin.blog.authors.edit',
@@ -71,8 +75,16 @@ return [
     */
     'image_resolver' => null,
 
-    // Your own view for picking images, rendered where a picker belongs and
-    // given $items (already resolved) and $group.
+    /*
+    | The view rendered wherever an image is picked, given $items (already
+    | resolved), $group and $multiple. Install kreetancraft/laravel-media-manager
+    | and point this at the field it ships:
+    |
+    |     'media_picker_view' => 'media::picker-field',
+    |
+    | Or name one of your own. Null hides every picker: the screens still work,
+    | they just cannot attach images.
+    */
     'media_picker_view' => null,
 
     'collections' => [

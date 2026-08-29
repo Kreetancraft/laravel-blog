@@ -8,7 +8,7 @@
         </div>
 
         @can('edit-blogs')
-            <flux:button wire:click="openCreate" variant="primary" icon="plus" data-test="create-category">{{ __('New category') }}</flux:button>
+            <flux:button :href="\Kreetancraft\Blog\Routes::to('categories.create')" variant="primary" icon="plus" wire:navigate data-test="create-category">{{ __('New category') }}</flux:button>
         @endcan
     </div>
 
@@ -45,7 +45,7 @@
             <flux:table.rows>
                 @foreach ($categories as $category)
                     <flux:table.row :key="$category->id">
-                        <flux:table.cell class="font-medium max-w-xs whitespace-normal! break-words">{{ $category->name }}</flux:table.cell>
+                        <flux:table.cell class="font-medium max-w-xs whitespace-normal! break-words"><flux:link :href="\Kreetancraft\Blog\Routes::to('categories.edit', $category)" wire:navigate>{{ $category->name }}</flux:link></flux:table.cell>
                         <flux:table.cell><flux:text class="text-xs text-zinc-500">{{ $category->slug }}</flux:text></flux:table.cell>
                         <flux:table.cell>{{ $category->posts_count }}</flux:table.cell>
                         <flux:table.cell>
@@ -53,7 +53,7 @@
                                 <flux:button icon="ellipsis-vertical" variant="ghost" size="sm" />
                                 <flux:menu>
                                     @can('edit-blogs')
-                                        <flux:menu.item wire:click="openEdit({{ $category->id }})" icon="pencil-square">{{ __('Edit') }}</flux:menu.item>
+                                        <flux:menu.item :href="\Kreetancraft\Blog\Routes::to('categories.edit', $category)" icon="pencil-square" wire:navigate>{{ __('Edit') }}</flux:menu.item>
                                     @endcan
                                     @can('edit-blogs')
                                         <flux:menu.separator />
@@ -68,22 +68,4 @@
         </flux:table>
     @endif
 
-    <flux:modal name="category-form" class="md:w-lg">
-        <form wire:submit="save" class="space-y-6" novalidate>
-            <flux:heading size="lg">{{ $editingId ? __('Edit category') : __('New category') }}</flux:heading>
-
-            <flux:input wire:model="name" :label="__('Name')" required />
-            <flux:textarea wire:model="description" :label="__('Description')" rows="3" />
-
-            <flux:separator variant="subtle" />
-
-            @include('seo::livewire.partials.seo-fields', ['compact' => true])
-
-            <div class="flex gap-2">
-                <flux:spacer />
-                <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
-                <flux:button type="submit" variant="primary" icon="check" wire:loading.attr="disabled" wire:loading.class="opacity-60" data-test="save-category">{{ __('Save') }}</flux:button>
-            </div>
-        </form>
-    </flux:modal>
 </div>

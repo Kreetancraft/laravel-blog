@@ -1,5 +1,9 @@
 <?php
 
+use Kreetancraft\Blog\Livewire\CreateCategory;
+use Kreetancraft\Blog\Livewire\CreateTag;
+use Kreetancraft\Blog\Livewire\EditCategory;
+use Kreetancraft\Blog\Livewire\EditTag;
 use Kreetancraft\Blog\Livewire\ManageCategories;
 use Kreetancraft\Blog\Livewire\ManageTags;
 use Kreetancraft\Blog\Models\Category;
@@ -7,11 +11,14 @@ use Kreetancraft\Blog\Models\Post;
 use Kreetancraft\Blog\Models\Tag;
 use Livewire\Livewire;
 
+/*
+ * Creating and editing moved to their own pages in 0.4.0: a category carries
+ * the full SEO panel, which does not fit a modal. The listing keeps delete.
+ */
 test('a package manager can create a category', function () {
     actingAsBlogManager();
 
-    Livewire::test(ManageCategories::class)
-        ->call('openCreate')
+    Livewire::test(CreateCategory::class)
         ->set('name', 'Trail Reports')
         ->set('description', 'Season by season conditions.')
         ->call('save')
@@ -27,8 +34,7 @@ test('category names are unique', function () {
     actingAsBlogManager();
     Category::factory()->create(['name' => 'Dupe Category']);
 
-    Livewire::test(ManageCategories::class)
-        ->call('openCreate')
+    Livewire::test(CreateCategory::class)
         ->set('name', 'Dupe Category')
         ->call('save')
         ->assertHasErrors(['name']);
@@ -38,8 +44,7 @@ test('a package manager can edit a category', function () {
     actingAsBlogManager();
     $category = Category::factory()->create(['name' => 'Before']);
 
-    Livewire::test(ManageCategories::class)
-        ->call('openEdit', $category->id)
+    Livewire::test(EditCategory::class, ['category' => $category])
         ->set('name', 'After')
         ->call('save')
         ->assertHasNoErrors();
@@ -64,8 +69,7 @@ test('deleting a category soft-deletes it and keeps posts', function () {
 test('a package manager can create and edit a tag', function () {
     actingAsBlogManager();
 
-    Livewire::test(ManageTags::class)
-        ->call('openCreate')
+    Livewire::test(CreateTag::class)
         ->set('name', 'Gear')
         ->call('save')
         ->assertHasNoErrors();
@@ -73,8 +77,7 @@ test('a package manager can create and edit a tag', function () {
     $tag = Tag::firstWhere('name', 'Gear');
     expect($tag)->not->toBeNull()->and($tag->slug)->toBe('gear');
 
-    Livewire::test(ManageTags::class)
-        ->call('openEdit', $tag->id)
+    Livewire::test(EditTag::class, ['tag' => $tag])
         ->set('name', 'Equipment')
         ->call('save')
         ->assertHasNoErrors();

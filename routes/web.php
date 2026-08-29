@@ -2,11 +2,15 @@
 
 use Illuminate\Support\Facades\Route;
 use Kreetancraft\Blog\Livewire\CreateAuthor;
+use Kreetancraft\Blog\Livewire\CreateCategory;
 use Kreetancraft\Blog\Livewire\CreatePost;
 use Kreetancraft\Blog\Livewire\CreateSeries;
+use Kreetancraft\Blog\Livewire\CreateTag;
 use Kreetancraft\Blog\Livewire\EditAuthor;
+use Kreetancraft\Blog\Livewire\EditCategory;
 use Kreetancraft\Blog\Livewire\EditPost;
 use Kreetancraft\Blog\Livewire\EditSeries;
+use Kreetancraft\Blog\Livewire\EditTag;
 use Kreetancraft\Blog\Livewire\ManageAuthors;
 use Kreetancraft\Blog\Livewire\ManageCategories;
 use Kreetancraft\Blog\Livewire\ManageComments;
@@ -65,6 +69,28 @@ Route::middleware('can:update,'.Series::class)->group(function () use ($names): 
     Route::get('blog/series/{series}/edit', EditSeries::class)
         ->name($names['series.edit'] ?? 'admin.blog.series.edit')
         ->whereNumber('series');
+});
+
+Route::middleware('can:create,'.Category::class)->group(function () use ($names): void {
+    Route::get('blog/categories/create', CreateCategory::class)
+        ->name($names['categories.create'] ?? 'admin.blog.categories.create');
+});
+
+Route::middleware('can:create,'.Tag::class)->group(function () use ($names): void {
+    Route::get('blog/tags/create', CreateTag::class)
+        ->name($names['tags.create'] ?? 'admin.blog.tags.create');
+});
+
+Route::middleware('can:update,'.Category::class)->group(function () use ($names): void {
+    Route::get('blog/categories/{category}/edit', EditCategory::class)
+        ->name($names['categories.edit'] ?? 'admin.blog.categories.edit')
+        ->whereNumber('category');
+});
+
+Route::middleware('can:update,'.Tag::class)->group(function () use ($names): void {
+    Route::get('blog/tags/{tag}/edit', EditTag::class)
+        ->name($names['tags.edit'] ?? 'admin.blog.tags.edit')
+        ->whereNumber('tag');
 });
 
 Route::middleware('can:viewAny,'.Post::class)->group(function () use ($names): void {

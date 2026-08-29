@@ -114,14 +114,42 @@ them in `config/seo.php` under `paths`.
 
 ## Images
 
+Install the media package and point two config values at it. That is the whole setup:
+
+```bash
+composer require kreetancraft/laravel-media-manager
+```
+
 ```php
 // config/blog.php
 'image_resolver' => \Kreetancraft\Media\Support\MediaImageResolver::class,
-'media_picker_view' => 'components.my-media-picker',
+'media_picker_view' => 'media::picker-field',
 ```
 
-The resolver turns a model plus a collection name into URLs; the picker view is yours, rendered
-where a picker belongs and handed `$items` (already resolved) plus `$group`.
+```php
+// config/seo.php  — the same field, for og:image
+'og_picker_view' => 'media::picker-field',
+```
+
+Featured images, author avatars and series covers now show a **Choose** button on their edit
+pages, and the rich editor's image button opens the same library. Nothing else to write.
+
+**Where images appear once wired**
+
+| | |
+|---|---|
+| Post edit | Featured image, and images inserted into the body from the editor |
+| Author edit | Avatar |
+| Series edit | Cover |
+| Category edit | og:image, through the SEO panel |
+| Anywhere with the SEO panel | og:image, previewed live in the Facebook and X cards |
+
+**How it works.** Neither package depends on the other. The blog asks a configured resolver for
+URLs and renders a configured view for picking; the media package supplies both. Point them at
+your own class and view instead and nothing here changes.
+
+Leave both null and the blog still runs — images return null and the pickers hide themselves
+rather than rendering a button with nothing behind it.
 
 Listings call `Post::preloadImages()` once per page, so images cost one query for the page rather
 than two per row.

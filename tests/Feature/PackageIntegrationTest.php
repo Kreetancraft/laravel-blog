@@ -124,3 +124,28 @@ it('works with no image resolver installed', function (): void {
         ->assertOk()
         ->assertJsonPath('data.featured_image', null);
 });
+
+it('groups all six subjects under one sidebar heading', function (): void {
+    // Six loose links would take six lines of someone's sidebar for one
+    // package. The group takes one.
+    //
+    // Read this package's own binding rather than the whole tag: the SEO
+    // package contributes to the same tag, and asserting over both would make
+    // this test fail whenever a neighbour adds a screen.
+    $items = app('blog.navigation.items');
+
+    expect(collect($items)->pluck('label')->all())
+        ->toEqualCanonicalizing(['Posts', 'Categories', 'Tags', 'Authors', 'Series', 'Comments'])
+        ->and(collect($items)->pluck('group')->unique()->all())->toBe(['Blogs']);
+});
+
+it('gates every one of the six on its own policy', function (): void {
+    // A shared heading must not mean a shared permission: someone who may
+    // moderate comments but not edit posts should see one entry, not six.
+    $items = app('blog.navigation.items');
+
+    $models = collect($items)->pluck('model')->unique();
+
+    expect($models)->toHaveCount(6)
+        ->and(collect($items)->pluck('ability')->unique()->all())->toBe(['viewAny']);
+});

@@ -9,11 +9,15 @@ use Illuminate\Support\ServiceProvider;
 use Kreetancraft\Blog\Console\Commands\PublishScheduledPosts;
 use Kreetancraft\Blog\Contracts\BlogsContract;
 use Kreetancraft\Blog\Livewire\CreateAuthor;
+use Kreetancraft\Blog\Livewire\CreateCategory;
 use Kreetancraft\Blog\Livewire\CreatePost;
 use Kreetancraft\Blog\Livewire\CreateSeries;
+use Kreetancraft\Blog\Livewire\CreateTag;
 use Kreetancraft\Blog\Livewire\EditAuthor;
+use Kreetancraft\Blog\Livewire\EditCategory;
 use Kreetancraft\Blog\Livewire\EditPost;
 use Kreetancraft\Blog\Livewire\EditSeries;
+use Kreetancraft\Blog\Livewire\EditTag;
 use Kreetancraft\Blog\Livewire\ManageAuthors;
 use Kreetancraft\Blog\Livewire\ManageCategories;
 use Kreetancraft\Blog\Livewire\ManageComments;
@@ -108,6 +112,9 @@ class BlogServiceProvider extends ServiceProvider
      */
     protected function registerNavigation(): void
     {
+        // All six under one heading. Six loose links would take six lines of
+        // someone's sidebar for one package; the group takes one, and each
+        // entry still disappears for a user whose policy denies it.
         $this->app->bind('blog.navigation.items', fn () => [
             [
                 'label' => __('Posts'),
@@ -115,7 +122,44 @@ class BlogServiceProvider extends ServiceProvider
                 'route' => config('blog.routes.names.posts', 'admin.blog.posts'),
                 'ability' => 'viewAny',
                 'model' => Post::class,
+                'group' => __('Blogs'),
                 'sort' => 50,
+            ],
+            [
+                'label' => __('Categories'),
+                'icon' => 'folder',
+                'route' => config('blog.routes.names.categories', 'admin.blog.categories'),
+                'ability' => 'viewAny',
+                'model' => Category::class,
+                'group' => __('Blogs'),
+                'sort' => 51,
+            ],
+            [
+                'label' => __('Tags'),
+                'icon' => 'hashtag',
+                'route' => config('blog.routes.names.tags', 'admin.blog.tags'),
+                'ability' => 'viewAny',
+                'model' => Tag::class,
+                'group' => __('Blogs'),
+                'sort' => 52,
+            ],
+            [
+                'label' => __('Authors'),
+                'icon' => 'user-circle',
+                'route' => config('blog.routes.names.authors', 'admin.blog.authors'),
+                'ability' => 'viewAny',
+                'model' => Author::class,
+                'group' => __('Blogs'),
+                'sort' => 53,
+            ],
+            [
+                'label' => __('Series'),
+                'icon' => 'rectangle-stack',
+                'route' => config('blog.routes.names.series', 'admin.blog.series'),
+                'ability' => 'viewAny',
+                'model' => Series::class,
+                'group' => __('Blogs'),
+                'sort' => 54,
             ],
             [
                 'label' => __('Comments'),
@@ -123,7 +167,8 @@ class BlogServiceProvider extends ServiceProvider
                 'route' => config('blog.routes.names.comments', 'admin.blog.comments'),
                 'ability' => 'viewAny',
                 'model' => Comment::class,
-                'sort' => 51,
+                'group' => __('Blogs'),
+                'sort' => 55,
             ],
         ]);
 
@@ -222,7 +267,11 @@ class BlogServiceProvider extends ServiceProvider
             'blog.posts.create' => CreatePost::class,
             'blog.posts.edit' => EditPost::class,
             'blog.categories' => ManageCategories::class,
+            'blog.categories.create' => CreateCategory::class,
+            'blog.categories.edit' => EditCategory::class,
             'blog.tags' => ManageTags::class,
+            'blog.tags.create' => CreateTag::class,
+            'blog.tags.edit' => EditTag::class,
             'blog.authors' => ManageAuthors::class,
             'blog.authors.create' => CreateAuthor::class,
             'blog.authors.edit' => EditAuthor::class,

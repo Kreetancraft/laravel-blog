@@ -8,7 +8,7 @@
         </div>
 
         @can('edit-blogs')
-            <flux:button wire:click="openCreate" variant="primary" icon="plus" data-test="create-tag">{{ __('New tag') }}</flux:button>
+            <flux:button :href="\Kreetancraft\Blog\Routes::to('tags.create')" variant="primary" icon="plus" wire:navigate data-test="create-tag">{{ __('New tag') }}</flux:button>
         @endcan
     </div>
 
@@ -45,7 +45,7 @@
             <flux:table.rows>
                 @foreach ($tags as $tag)
                     <flux:table.row :key="$tag->id">
-                        <flux:table.cell class="font-medium max-w-xs whitespace-normal! break-words">{{ $tag->name }}</flux:table.cell>
+                        <flux:table.cell class="font-medium max-w-xs whitespace-normal! break-words"><flux:link :href="\Kreetancraft\Blog\Routes::to('tags.edit', $tag)" wire:navigate>{{ $tag->name }}</flux:link></flux:table.cell>
                         <flux:table.cell><flux:text class="text-xs text-zinc-500">{{ $tag->slug }}</flux:text></flux:table.cell>
                         <flux:table.cell>{{ $tag->posts_count }}</flux:table.cell>
                         <flux:table.cell>
@@ -53,7 +53,7 @@
                                 <flux:button icon="ellipsis-vertical" variant="ghost" size="sm" />
                                 <flux:menu>
                                     @can('edit-blogs')
-                                        <flux:menu.item wire:click="openEdit({{ $tag->id }})" icon="pencil-square">{{ __('Edit') }}</flux:menu.item>
+                                        <flux:menu.item :href="\Kreetancraft\Blog\Routes::to('tags.edit', $tag)" icon="pencil-square" wire:navigate>{{ __('Edit') }}</flux:menu.item>
                                     @endcan
                                     @can('edit-blogs')
                                         <flux:menu.separator />
@@ -68,17 +68,4 @@
         </flux:table>
     @endif
 
-    <flux:modal name="tag-form" class="md:w-96">
-        <form wire:submit="save" class="space-y-6" novalidate>
-            <flux:heading size="lg">{{ $editingId ? __('Edit tag') : __('New tag') }}</flux:heading>
-
-            <flux:input wire:model="name" :label="__('Name')" required />
-
-            <div class="flex gap-2">
-                <flux:spacer />
-                <flux:modal.close><flux:button variant="ghost">{{ __('Cancel') }}</flux:button></flux:modal.close>
-                <flux:button type="submit" variant="primary" icon="check" wire:loading.attr="disabled" wire:loading.class="opacity-60" data-test="save-tag">{{ __('Save') }}</flux:button>
-            </div>
-        </form>
-    </flux:modal>
 </div>
