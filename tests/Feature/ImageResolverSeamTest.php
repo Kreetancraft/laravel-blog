@@ -81,3 +81,27 @@ it('is inert when the configured class does not exist', function (): void {
     expect($post->featuredUrl())->toBeNull()
         ->and(Post::imagesEnabled())->toBeFalse();
 });
+
+it('mounts the editor picker as a modal only, with nothing visible', function (): void {
+    // The editor's toolbar button is the trigger. A Choose card below the form
+    // rendered there once and did nothing when clicked; this stops it coming
+    // back unnoticed.
+    $screens = ['create-post', 'edit-post', 'create-author', 'edit-author', 'create-series', 'edit-series'];
+
+    foreach ($screens as $screen) {
+        $blade = file_get_contents(__DIR__.'/../../resources/views/livewire/'.$screen.'.blade.php');
+
+        expect($blade)->toContain("'group' => 'rich-text-image'")
+            ->and($blade)->toContain("'trigger' => false");
+    }
+});
+
+it('leaves the real image fields visible', function (): void {
+    // The same view, used the other way: these are fields and must render.
+    foreach (['post', 'author', 'series'] as $partial) {
+        $blade = file_get_contents(__DIR__.'/../../resources/views/livewire/partials/'.$partial.'-fields.blade.php');
+
+        expect($blade)->toContain("'label' =>")
+            ->and($blade)->not->toContain("'trigger' => false");
+    }
+});

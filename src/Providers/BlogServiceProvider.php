@@ -122,7 +122,7 @@ class BlogServiceProvider extends ServiceProvider
                 'route' => config('blog.routes.names.posts', 'admin.blog.posts'),
                 'ability' => 'viewAny',
                 'model' => Post::class,
-                'group' => __('Blogs'),
+                'group' => config('blog.navigation.group', __('Blogs')),
                 'sort' => 50,
             ],
             [
@@ -131,7 +131,7 @@ class BlogServiceProvider extends ServiceProvider
                 'route' => config('blog.routes.names.categories', 'admin.blog.categories'),
                 'ability' => 'viewAny',
                 'model' => Category::class,
-                'group' => __('Blogs'),
+                'group' => config('blog.navigation.group', __('Blogs')),
                 'sort' => 51,
             ],
             [
@@ -140,7 +140,7 @@ class BlogServiceProvider extends ServiceProvider
                 'route' => config('blog.routes.names.tags', 'admin.blog.tags'),
                 'ability' => 'viewAny',
                 'model' => Tag::class,
-                'group' => __('Blogs'),
+                'group' => config('blog.navigation.group', __('Blogs')),
                 'sort' => 52,
             ],
             [
@@ -149,7 +149,7 @@ class BlogServiceProvider extends ServiceProvider
                 'route' => config('blog.routes.names.authors', 'admin.blog.authors'),
                 'ability' => 'viewAny',
                 'model' => Author::class,
-                'group' => __('Blogs'),
+                'group' => config('blog.navigation.group', __('Blogs')),
                 'sort' => 53,
             ],
             [
@@ -158,7 +158,7 @@ class BlogServiceProvider extends ServiceProvider
                 'route' => config('blog.routes.names.series', 'admin.blog.series'),
                 'ability' => 'viewAny',
                 'model' => Series::class,
-                'group' => __('Blogs'),
+                'group' => config('blog.navigation.group', __('Blogs')),
                 'sort' => 54,
             ],
             [
@@ -167,7 +167,7 @@ class BlogServiceProvider extends ServiceProvider
                 'route' => config('blog.routes.names.comments', 'admin.blog.comments'),
                 'ability' => 'viewAny',
                 'model' => Comment::class,
-                'group' => __('Blogs'),
+                'group' => config('blog.navigation.group', __('Blogs')),
                 'sort' => 55,
             ],
         ]);

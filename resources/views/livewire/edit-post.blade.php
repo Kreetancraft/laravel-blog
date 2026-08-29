@@ -29,10 +29,10 @@
         </div>
     </form>
 
-    {{-- The picker is the host's: this package ships no image handling, and
-         which picker you use is your choice. Point `blog.media_picker_view`
-         at a view of yours and it renders here. --}}
+    {{-- Mounts the picker the editor's image button opens. trigger => false
+         because nothing should be visible here: the toolbar is the trigger, and
+         a Choose card below the form would do nothing when clicked. --}}
     @if (\Kreetancraft\Blog\Models\Post::imagesEnabled() && ($picker = config('blog.media_picker_view')))
-        @includeIf($picker, ['items' => [], 'group' => 'rich-text-image', 'multiple' => true])
+        @includeIf($picker, ['items' => [], 'group' => 'rich-text-image', 'multiple' => true, 'trigger' => false])
     @endif
 </div>

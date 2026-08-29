@@ -12,6 +12,19 @@ return [
     | or the reverse.
     |
     */
+    /*
+    |--------------------------------------------------------------------------
+    | Sidebar
+    |--------------------------------------------------------------------------
+    |
+    | The heading this package's six screens sit under, when something collects
+    | the `admin.navigation` tag. Null leaves them loose at the top level.
+    |
+    */
+    'navigation' => [
+        'group' => 'Blogs',
+    ],
+
     'routes' => [
         'register' => true,
         'prefix' => 'admin',
