@@ -13,6 +13,11 @@ import { Youtube } from '@tiptap/extension-youtube';
 import { Extension } from '@tiptap/core';
 import Suggestion from '@tiptap/suggestion';
 
+// The date picker and number input the shipped form components need. They came
+// out of an application whose app.js defined them; shipping the Blade without
+// the JavaScript left both inert everywhere else.
+import './form-controls.js';
+
 /**
  * A callout: note, tip, warning or danger.
  *

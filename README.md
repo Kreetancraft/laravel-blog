@@ -73,6 +73,11 @@ To replace the editor entirely, publish the views and edit
 `resources/views/vendor/blog/components/rich-text.blade.php`, or set
 `blog.routes.serve_assets` to false and load your own.
 
+> **Publishing the views freezes them.** `vendor:publish --tag=blog-views` copies these screens
+> into your application, and a published copy wins over the package's — so upgrades stop reaching
+> them. That is how a stray image card survived a release that removed it. Publish to restyle, by
+> all means; just republish with `--force` after upgrading, or expect to merge by hand.
+
 ## Permissions
 
 Every policy declares a subject, so with

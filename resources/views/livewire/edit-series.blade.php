@@ -65,10 +65,4 @@
         @endif
     </flux:card>
 
-    {{-- Mounts the picker the editor's image button opens. trigger => false
-         because nothing should be visible here: the toolbar is the trigger, and
-         a Choose card below the form would do nothing when clicked. --}}
-    @if (\Kreetancraft\Blog\Models\Post::imagesEnabled() && ($picker = config('blog.media_picker_view')))
-        @includeIf($picker, ['items' => [], 'group' => 'rich-text-image', 'multiple' => true, 'trigger' => false])
-    @endif
 </div>

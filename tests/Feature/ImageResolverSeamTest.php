@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Blade;
 use Kreetancraft\Blog\Models\Author;
 use Kreetancraft\Blog\Models\Post;
 use Kreetancraft\Blog\Models\Series;
@@ -82,26 +83,42 @@ it('is inert when the configured class does not exist', function (): void {
         ->and(Post::imagesEnabled())->toBeFalse();
 });
 
-it('mounts the editor picker as a modal only, with nothing visible', function (): void {
-    // The editor's toolbar button is the trigger. A Choose card below the form
-    // rendered there once and did nothing when clicked; this stops it coming
-    // back unnoticed.
-    $screens = ['create-post', 'edit-post', 'create-author', 'edit-author', 'create-series', 'edit-series'];
+it('mounts the editor picker inside the editor, not in the screens', function (): void {
+    // It sat in the six screens after the closing form tag, where an unlabelled
+    // Choose card ended up stranded below the submit button for a release. The
+    // toolbar button is what opens it, so it belongs with the toolbar.
+    $editor = file_get_contents(__DIR__.'/../../resources/views/components/rich-text.blade.php');
 
-    foreach ($screens as $screen) {
+    expect($editor)->toContain("'group' => 'rich-text-image'")
+        ->and($editor)->toContain('media_picker_modal_view')
+        // @once: a page may hold two editors, and they share a modal name.
+        ->and($editor)->toContain('@once');
+
+    foreach (['create-post', 'edit-post', 'create-author', 'edit-author', 'create-series', 'edit-series'] as $screen) {
         $blade = file_get_contents(__DIR__.'/../../resources/views/livewire/'.$screen.'.blade.php');
 
-        expect($blade)->toContain("'group' => 'rich-text-image'")
-            ->and($blade)->toContain("'trigger' => false");
+        expect($blade)->not->toContain('rich-text-image');
     }
 });
 
+it('mounts nothing at all when no modal picker is configured', function (): void {
+    // @includeIf on a missing view renders nothing, so an install without the
+    // media package gets an inert image button rather than an error or a card.
+    config()->set('blog.media_picker_modal_view', 'acme::picker-that-does-not-exist');
+
+    $html = Blade::render(
+        "@includeIf(config('blog.media_picker_modal_view'), ['group' => 'rich-text-image'])"
+    );
+
+    expect(trim($html))->toBe('');
+});
+
 it('leaves the real image fields visible', function (): void {
-    // The same view, used the other way: these are fields and must render.
+    // The same seam, used the other way: these are fields and must render.
     foreach (['post', 'author', 'series'] as $partial) {
         $blade = file_get_contents(__DIR__.'/../../resources/views/livewire/partials/'.$partial.'-fields.blade.php');
 
         expect($blade)->toContain("'label' =>")
-            ->and($blade)->not->toContain("'trigger' => false");
+            ->and($blade)->toContain('media_picker_view');
     }
 });

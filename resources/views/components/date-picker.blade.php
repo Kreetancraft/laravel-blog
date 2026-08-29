@@ -1,3 +1,5 @@
+@include('blog::partials.assets')
+
 @props([
     'model',
     'label' => null,

@@ -100,6 +100,15 @@ return [
     */
     'media_picker_view' => null,
 
+    /*
+    | The picker the rich text editor's image button opens. Nothing visible —
+    | the toolbar is the trigger — so this is a different view from the field
+    | above. With kreetancraft/laravel-media-manager 0.8.0 or later it is
+    | already correct; null, or a view that does not exist, simply mounts no
+    | picker and the image button does nothing.
+    */
+    'media_picker_modal_view' => 'media::picker-modal',
+
     'collections' => [
         'featured' => 'featured',
         'author_avatar' => 'avatar',

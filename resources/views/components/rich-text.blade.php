@@ -65,13 +65,25 @@
     </style>
 @endonce
 
-@assets
-    {{-- The editor bundle ships with this package, Tiptap included: no npm
-         packages, no build step and nothing to publish. @assets rather than a
-         bare <script> because a bare one is not re-executed on wire:navigate,
-         which left window.richText undefined on a second visit. --}}
-    <script src="{{ \Kreetancraft\Blog\Http\Controllers\AssetController::editorUrl() }}" defer></script>
-@endassets
+@include('blog::partials.assets')
+
+{{-- The picker this editor's image button opens.
+
+     @once because a page may hold more than one editor and they share a modal
+     name; rendering it twice would give Flux two elements answering to
+     media-picker-rich-text-image.
+
+     It lives here rather than in the six screens that use the editor: the
+     toolbar button is what opens it, and keeping them apart is how an
+     unlabelled Choose card ended up stranded below a submit button for a
+     release. @includeIf, so a host with no picker configured gets an inert
+     button rather than an error. --}}
+@once
+    @includeIf(config('blog.media_picker_modal_view'), [
+        'group' => 'rich-text-image',
+        'multiple' => true,
+    ])
+@endonce
 
 <flux:field>
     @if ($label)
