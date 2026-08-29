@@ -1,0 +1,63 @@
+{
+    "name": "kreetancraft/laravel-blog",
+    "description": "Blog for Laravel \u2014 posts, categories, tags, authors, series and moderated comments, with SEO and a public read API. Livewire 4 + Flux UI.",
+    "keywords": [
+        "laravel",
+        "livewire",
+        "blog",
+        "cms",
+        "flux"
+    ],
+    "license": "MIT",
+    "require": {
+        "kreetancraft/laravel-seo": "^0.1",
+        "laravel/framework": "^12.0|^13.0",
+        "livewire/flux": "^2.0",
+        "livewire/livewire": "^4.0",
+        "lorisleiva/laravel-actions": "^2.7",
+        "php": "^8.2",
+        "sandermuller/laravel-fluent-validation": "^1.30",
+        "spatie/laravel-query-builder": "^6.0|^7.0",
+        "spatie/laravel-sluggable": "^3.7"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.27",
+        "orchestra/testbench": "^10.0",
+        "pestphp/pest": "^4.0",
+        "pestphp/pest-plugin-laravel": "^4.0",
+        "spatie/laravel-permission": "^6.0|^7.0|^8.0"
+    },
+    "suggest": {
+        "kreetancraft/laravel-media-manager": "Featured images, author avatars and series covers, via blog.image_resolver.",
+        "kreetancraft/laravel-user-management": "Discovers this package's policies and creates their permissions automatically."
+    },
+    "autoload": {
+        "psr-4": {
+            "Kreetancraft\\Blog\\": "src/",
+            "Kreetancraft\\Blog\\Database\\Factories\\": "database/factories/",
+            "Kreetancraft\\Blog\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Kreetancraft\\Blog\\Tests\\": "tests/",
+            "Kreetancraft\\Blog\\Tests\\Fixtures\\": "tests/fixtures/",
+            "Kreetancraft\\Support\\": "tests/Support/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Kreetancraft\\Blog\\Providers\\BlogServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
