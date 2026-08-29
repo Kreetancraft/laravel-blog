@@ -66,8 +66,14 @@ horizontal rule, clear formatting, undo/redo, source view and fullscreen — plu
 | **Slash menu** | Type `/` at the start of a block for a filtered command palette — headings, lists, table, image, video, callouts, divider. Arrow keys and Enter, or click |
 | **Paste cleanup** | Word and Google Docs paste a document, not a fragment — `mso-*` styles, `<o:p>` tags and a class on every element. Structure is kept, presentation dropped |
 
-Images come from your own picker via `blog.media_picker_view`; the editor dispatches
-`media-picked` for the `rich-text-image` group and inserts what it receives.
+The editor mounts its own picker through `blog.media_picker_modal_view`, defaulting to
+`media::picker-modal`. That is a *modal only* — the toolbar button is the trigger, so nothing
+visible is added to the page. It dispatches `media-picked` for the `rich-text-image` group and
+inserts what it receives.
+
+Name a view that does not exist and nothing is mounted: the image button is inert rather than
+erroring. `blog.media_picker_view` is separate and is the *field* used for featured images,
+avatars and covers.
 
 To replace the editor entirely, publish the views and edit
 `resources/views/vendor/blog/components/rich-text.blade.php`, or set
