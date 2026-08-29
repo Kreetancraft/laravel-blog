@@ -17,6 +17,11 @@ return [
         'prefix' => 'admin',
         'middleware' => ['web', 'auth'],
 
+        // The editor bundle. Separate from the admin screens: a host that
+        // replaces the UI does not need it, and one that keeps the UI does.
+        'serve_assets' => true,
+        'asset_middleware' => ['web'],
+
         'register_api' => true,
         'api_prefix' => 'api',
         'api_middleware' => ['api'],
@@ -43,6 +48,7 @@ return [
             'series.edit' => 'admin.blog.series.edit',
             'comments' => 'admin.blog.comments',
             'comments.show' => 'admin.blog.comments.show',
+            'asset' => 'blog.asset.editor',
         ],
     ],
 

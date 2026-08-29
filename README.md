@@ -43,6 +43,35 @@ Required. Tailwind v4 generates only the classes it finds by scanning files, and
 Skipping it fails confusingly rather than loudly — classes shared with your own views still work
 and only the ones unique to these packages go missing.
 
+## The editor
+
+A TipTap editor ships with the package, bundled — **no npm packages, no build step, nothing to
+publish**. It is served from the package itself, so upgrading is `composer update` alone.
+
+```blade
+<x-blog::rich-text model="content" :label="__('Body')" :rows="20" />
+```
+
+What it does: bold, italic, underline, strikethrough, three heading levels, bullet, numbered and
+**task lists**, blockquote, code block, links, images, text alignment, colour and highlight,
+horizontal rule, clear formatting, undo/redo, source view and fullscreen — plus:
+
+| | |
+|---|---|
+| **Tables** | Insert, resizable columns, add/remove rows and columns, header row, merge and split cells |
+| **Callouts** | Note, tip, warning and danger, as `<div data-callout="…">` so a sanitiser leaves them alone |
+| **YouTube embeds** | Paste a URL; served cookie-free |
+| **Find and replace** | Across the whole document, with match case |
+| **Word and character count** | Live, under the editor |
+| **Paste cleanup** | Word and Google Docs paste a document, not a fragment — `mso-*` styles, `<o:p>` tags and a class on every element. Structure is kept, presentation dropped |
+
+Images come from your own picker via `blog.media_picker_view`; the editor dispatches
+`media-picked` for the `rich-text-image` group and inserts what it receives.
+
+To replace the editor entirely, publish the views and edit
+`resources/views/vendor/blog/components/rich-text.blade.php`, or set
+`blog.routes.serve_assets` to false and load your own.
+
 ## Permissions
 
 Every policy declares a subject, so with

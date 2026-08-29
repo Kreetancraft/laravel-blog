@@ -253,6 +253,15 @@ class BlogServiceProvider extends ServiceProvider
             });
         }
 
+        // Public and unauthenticated: it is a static file, and the admin
+        // screens cannot render without it.
+        if (config('blog.routes.serve_assets', true)) {
+            Route::middleware(config('blog.routes.asset_middleware', ['web']))
+                ->group(function (): void {
+                    $this->loadRoutesFrom(__DIR__.'/../../routes/assets.php');
+                });
+        }
+
         if (config('blog.routes.register_api', true)) {
             Route::group([
                 'prefix' => config('blog.routes.api_prefix', 'api'),

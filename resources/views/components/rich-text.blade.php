@@ -31,8 +31,47 @@
         .rt-menu-item:hover { background: #f4f4f5; }
         .dark .rt-menu-item { color: #e4e4e7; }
         .dark .rt-menu-item:hover { background: #3f3f46; }
+
+        /* Tables */
+        [data-rich-text] .tiptap table { border-collapse: collapse; margin: .75rem 0; width: 100%; table-layout: fixed; overflow: hidden; }
+        [data-rich-text] .tiptap table td,
+        [data-rich-text] .tiptap table th { border: 1px solid #d4d4d8; padding: .4rem .6rem; vertical-align: top; position: relative; }
+        [data-rich-text] .tiptap table th { background: #fafafa; font-weight: 600; text-align: left; }
+        .dark [data-rich-text] .tiptap table td,
+        .dark [data-rich-text] .tiptap table th { border-color: #52525b; }
+        .dark [data-rich-text] .tiptap table th { background: #27272a; }
+        [data-rich-text] .tiptap .selectedCell:after { background: rgba(113,113,122,.2); content: ''; inset: 0; pointer-events: none; position: absolute; z-index: 2; }
+        [data-rich-text] .tiptap .column-resize-handle { background: #71717a; bottom: -2px; position: absolute; right: -2px; top: 0; width: 3px; pointer-events: none; }
+
+        /* Task lists */
+        [data-rich-text] .tiptap ul[data-type="taskList"] { list-style: none; padding-left: 0; }
+        [data-rich-text] .tiptap ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: .5rem; }
+        [data-rich-text] .tiptap ul[data-type="taskList"] li > label { margin-top: .2rem; }
+        [data-rich-text] .tiptap ul[data-type="taskList"] li > div { flex: 1 1 auto; }
+
+        /* Callouts. Coloured by type via the attribute, not a class: a
+           sanitiser rewrites classes long before it touches data-*. */
+        [data-rich-text] .tiptap .rt-callout { border-left: 3px solid #71717a; background: #fafafa; border-radius: .375rem; padding: .6rem .8rem; margin: .75rem 0; }
+        [data-rich-text] .tiptap .rt-callout[data-callout="tip"] { border-left-color: #16a34a; background: #f0fdf4; }
+        [data-rich-text] .tiptap .rt-callout[data-callout="warning"] { border-left-color: #d97706; background: #fffbeb; }
+        [data-rich-text] .tiptap .rt-callout[data-callout="danger"] { border-left-color: #dc2626; background: #fef2f2; }
+        .dark [data-rich-text] .tiptap .rt-callout { background: #27272a; }
+        .dark [data-rich-text] .tiptap .rt-callout[data-callout="tip"] { background: rgba(22,163,74,.12); }
+        .dark [data-rich-text] .tiptap .rt-callout[data-callout="warning"] { background: rgba(217,119,6,.12); }
+        .dark [data-rich-text] .tiptap .rt-callout[data-callout="danger"] { background: rgba(220,38,38,.12); }
+
+        /* Embeds */
+        [data-rich-text] .tiptap div[data-youtube-video] iframe { width: 100%; aspect-ratio: 16 / 9; height: auto; border-radius: .5rem; border: 0; }
     </style>
 @endonce
+
+@assets
+    {{-- The editor bundle ships with this package, Tiptap included: no npm
+         packages, no build step and nothing to publish. @assets rather than a
+         bare <script> because a bare one is not re-executed on wire:navigate,
+         which left window.richText undefined on a second visit. --}}
+    <script src="{{ \Kreetancraft\Blog\Http\Controllers\AssetController::editorUrl() }}" defer></script>
+@endassets
 
 <flux:field>
     @if ($label)
@@ -133,6 +172,42 @@
                 @endif
                 <flux:tooltip content="{{ __('Horizontal rule') }}"><button type="button" class="rt-btn" x-on:mousedown.prevent="horizontalRule()"><flux:icon name="minus" variant="micro" /></button></flux:tooltip>
 
+                {{-- Insert menu: table, video, callouts --}}
+                <div class="relative" x-on:click.outside="insertOpen = false">
+                    <flux:tooltip content="{{ __('Insert') }}">
+                        <button type="button" class="rt-btn" x-bind:class="insertOpen && 'is-active'" x-on:click="closeMenus(); insertOpen = ! insertOpen"><flux:icon name="plus-circle" variant="micro" /></button>
+                    </flux:tooltip>
+                    <div x-show="insertOpen" x-cloak style="display:none" class="rt-menu absolute z-30 mt-1 w-48 rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="insertTable()">{{ __('Table') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="openEmbed()">{{ __('YouTube video') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="setCallout('note')">{{ __('Note') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="setCallout('tip')">{{ __('Tip') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="setCallout('warning')">{{ __('Warning') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="setCallout('danger')">{{ __('Danger') }}</button>
+                    </div>
+                </div>
+
+                {{-- Table controls, only while the caret is inside one --}}
+                <div class="relative" x-show="active.table" x-cloak x-on:click.outside="tableOpen = false">
+                    <flux:tooltip content="{{ __('Table') }}">
+                        <button type="button" class="rt-btn" x-bind:class="tableOpen && 'is-active'" x-on:click="closeMenus(); tableOpen = ! tableOpen"><flux:icon name="table-cells" variant="micro" /></button>
+                    </flux:tooltip>
+                    <div x-show="tableOpen" x-cloak style="display:none" class="rt-menu absolute z-30 mt-1 w-52 rounded-lg border border-zinc-200 bg-white p-1 shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="addRowBefore()">{{ __('Row above') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="addRowAfter()">{{ __('Row below') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="deleteRow()">{{ __('Delete row') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="addColumnBefore()">{{ __('Column left') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="addColumnAfter()">{{ __('Column right') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="deleteColumn()">{{ __('Delete column') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="toggleHeaderRow()">{{ __('Toggle header row') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="mergeOrSplit()">{{ __('Merge or split cells') }}</button>
+                        <button type="button" class="rt-menu-item" x-on:mousedown.prevent="deleteTable()">{{ __('Delete table') }}</button>
+                    </div>
+                </div>
+
+                <flux:tooltip content="{{ __('Task list') }}"><button type="button" class="rt-btn" x-bind:class="active.taskList && 'is-active'" x-on:mousedown.prevent="toggleTaskList()"><flux:icon name="check-circle" variant="micro" /></button></flux:tooltip>
+                <flux:tooltip content="{{ __('Find and replace') }}"><button type="button" class="rt-btn" x-bind:class="findOpen && 'is-active'" x-on:click="toggleFind()"><flux:icon name="magnifying-glass" variant="micro" /></button></flux:tooltip>
+
                 {{-- Utility group (pushed right) --}}
                 <span class="ml-auto"></span>
                 <flux:tooltip content="{{ __('Clear formatting') }}"><button type="button" class="rt-btn" x-on:mousedown.prevent="clearFormatting()">T<sub>x</sub></button></flux:tooltip>
@@ -149,6 +224,26 @@
                 <flux:button type="button" size="xs" variant="ghost" x-on:click="linkOpen = false">{{ __('Cancel') }}</flux:button>
             </div>
 
+            {{-- Video embed row --}}
+            <div x-show="embedOpen" x-cloak style="display:none" class="flex items-center gap-2 border-b border-zinc-200 p-1.5 dark:border-zinc-700">
+                <input x-ref="embedInput" type="url" x-model="embedUrl" placeholder="https://youtube.com/watch?v=..." x-on:keydown.enter.prevent="applyEmbed()" x-on:keydown.escape="embedOpen = false" class="flex-1 rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 placeholder-zinc-400 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500" />
+                <flux:button type="button" size="xs" variant="primary" x-on:mousedown.prevent="applyEmbed()">{{ __('Embed') }}</flux:button>
+                <flux:button type="button" size="xs" variant="ghost" x-on:click="embedOpen = false">{{ __('Cancel') }}</flux:button>
+            </div>
+
+            {{-- Find and replace row --}}
+            <div x-show="findOpen" x-cloak style="display:none" class="flex flex-wrap items-center gap-2 border-b border-zinc-200 p-1.5 dark:border-zinc-700">
+                <input x-ref="findInput" type="text" x-model="findTerm" x-on:input.debounce.300ms="runFind()" placeholder="{{ __('Find') }}" x-on:keydown.enter.prevent="runFind()" x-on:keydown.escape="findOpen = false" class="w-40 rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 placeholder-zinc-400 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500" />
+                <input type="text" x-model="replaceTerm" placeholder="{{ __('Replace with') }}" class="w-40 rounded-md border border-zinc-200 bg-white px-2 py-1 text-sm text-zinc-800 placeholder-zinc-400 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500" />
+                <label class="flex items-center gap-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    <input type="checkbox" x-model="findMatchCase" x-on:change="runFind()" class="rounded border-zinc-300 dark:border-zinc-600" />
+                    {{ __('Match case') }}
+                </label>
+                <span class="text-xs text-zinc-500 dark:text-zinc-400" x-show="findTerm" x-text="findCount"></span>
+                <flux:button type="button" size="xs" variant="primary" x-on:mousedown.prevent="replaceAll()">{{ __('Replace all') }}</flux:button>
+                <flux:button type="button" size="xs" variant="ghost" x-on:click="findOpen = false">{{ __('Close') }}</flux:button>
+            </div>
+
             {{-- Editor (Tiptap mounts inside this host) --}}
             <div
                 x-show="! showSource"
@@ -158,6 +253,13 @@
                 style="--rt-min: {{ max($rows * 1.6, 12.5) }}rem; max-height: 500px"
                 x-bind:style="fullscreen ? '--rt-min: calc(100vh - 7rem); max-height: calc(100vh - 7rem)' : ''"
             ></div>
+
+            {{-- Counter: the SEO analyser scores content length separately, so
+                 this is the number a writer can act on while writing. --}}
+            <div class="flex items-center justify-end gap-3 border-t border-zinc-200 px-2 py-1 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                <span x-text="words + ' {{ __('words') }}'"></span>
+                <span x-text="characters + ' {{ __('characters') }}'"></span>
+            </div>
 
             {{-- Source view --}}
             <textarea
